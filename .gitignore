@@ -1,0 +1,24 @@
+# Virtual env 
+.amhvenv
+__pycache__
+.env
+
+# Scrapped data
+data/raw/scraping_session.session*
+data/raw/photos*
+
+# Checkpoints
+checkpoint-*/
+*.pt
+*.pth
+*.bin
+*.safetensors
+
+# Tokenizer & config
+tokenizer*.json
+special_tokens_map.json
+training_args.bin
+trainer_state.json
+
+# Logs and metadata
+logs/
