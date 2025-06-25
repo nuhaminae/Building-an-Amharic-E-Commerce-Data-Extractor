@@ -5,7 +5,6 @@ __pycache__
 
 # Scrapped data
 data/raw/scraping_session.session*
-data/raw/photos*
 
 # Checkpoints
 checkpoint-*/
