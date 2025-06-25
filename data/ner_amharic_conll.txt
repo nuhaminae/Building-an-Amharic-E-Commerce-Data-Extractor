@@ -923,7 +923,7 @@
 የሚሆን	O
 የወረቀት	B-PRODUCT
 እና	O
-እርሳስ	B-RODUCT
+እርሳስ	B-PRODUCT
 ወጪን	O
 የሚቆጥብ	O
 ብናኝ	O
@@ -1281,7 +1281,7 @@
 ያለው	O
 በኤሌክትሪክ	O
 የሚሰራ	O
-የሽንኩርት	B-RODUCT
+የሽንኩርት	B-PRODUCT
 የስጋ	I-PRODUCT
 የጨጓራ	I-PRODUCT
 መፍጫ	I-PRODUCT
@@ -1731,13 +1731,13 @@
 የገና	O
 ስጦታ	O
 ስጋ	O
-መፍጫ	B-PRODCUT
+መፍጫ	B-PRODUCT
 ያለው	O
-ሽንኩርት   B-PRODCUT
-መፍጫ	I-PRODCUT
+ሽንኩርት   B-PRODUCT
+መፍጫ	I-PRODUCT
 የያዘ	O
-ጁስ	B-PRODCUT
-መፍጫ	I-PRODCUT
+ጁስ	B-PRODUCT
+መፍጫ	I-PRODUCT
 ያለው	O
 ቡና	B-PRODUCT
 እና	O
@@ -1932,7 +1932,7 @@
 የሻይ	B-PRODUCT
 ማፍሊያና	I-PRODUCT
 መጠጫ	B-PRODUCT
-ከብርጭቆ	B-PRODCUT
+ከብርጭቆ	B-PRODUCT
 የተሰራ	O
 980	B-PRICE
 የሚይዝ	O
@@ -1940,7 +1940,7 @@
 ምድጃ	B-PRODUCT
 ላይ	I-LOC
 የሚጣድ	O
-ጆግ	B-PRODCUT
+ጆግ	B-PRODUCT
 100	B-PRICE
 የሚይዙ	O
 አራት	O
