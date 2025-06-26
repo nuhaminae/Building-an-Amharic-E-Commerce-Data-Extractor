@@ -5,7 +5,7 @@ import unicodedata
 import string
 import os
 
-class preprocess_and_clean():
+class PreprocessClean():
     def __init__(self, df_path, output_folder):
         """
         Initialise the  class with the necessary parameters.
@@ -186,8 +186,6 @@ class preprocess_and_clean():
             # Assign df_raw DataFrame to df
             self.df = self.df_raw.copy()
 
-        if self.df is not None:
-
             # Handle phone numbers
             self.df['Message'] = self.df['Message'].apply(self.collapse_phone_numbers)
             print ("\nPhone number separated by space are handled.")
@@ -202,8 +200,9 @@ class preprocess_and_clean():
 
             # Filters out any rows where the 'Message' column is empty or only contains whitespace.
             self.df = self.df[self.df['Message'].str.strip() != ""]
-            # Remove rows where the entire 'Message' consists of digits only.
-            self.df = self.df[~self.df['Message'].str.match(r'^\d+$')]
+            # Remove rows where the entire 'Message' consists of digits and/with white spaces
+            self.df = self.df[~self.df['Message'].str.match(r'^[\d\s]+$')]
+
 
             self.df = self.df.dropna(subset="Message").reset_index(drop=True)
             print("\nEmpty rows where 'Message' column is empty and or has just numeric values are dropped.")
@@ -242,7 +241,7 @@ class preprocess_and_clean():
 
             # Save processed data to CSV
             self.df.to_csv(df_name, index=False)
-            print(f"\nPrrocessed DataFrame Saved to: {relative_path}")
+            print(f"\nProcessed DataFrame Saved to: {relative_path}")
             
             return self.df
         
