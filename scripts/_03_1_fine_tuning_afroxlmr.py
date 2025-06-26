@@ -6,9 +6,10 @@ from transformers import (
                         AutoTokenizer, AutoModelForTokenClassification,
                         Trainer, TrainingArguments, DataCollatorForTokenClassification
                         )
+from transformers import TokenClassificationPipeline, pipeline
 from seqeval.metrics import classification_report
 
-class afroxlmr_Amharic_NER_fine_tuner:
+class afroxlmrAmharicNERFineTuner:
     """
     A class to fine-tune the afroxlmr-large-ner-masakhaner-1.0_2.0 model for Amharic NER.
 
@@ -21,7 +22,7 @@ class afroxlmr_Amharic_NER_fine_tuner:
     """
     def __init__(self, conll_path,  model_checkpoint = "masakhane/afroxlmr-large-ner-masakhaner-1.0_2.0",
                 output_dir = None):
-        print("Initialising afroxlmr_Amharic_NER_fine_tuner...")
+        print("Initialising afroxlmrAmharicNERFineTuner...")
         self.output_dir  = output_dir
         self.conll_path  =  conll_path
         self.rel_conll_path = os.path.relpath(self.conll_path, os.getcwd())
@@ -66,20 +67,26 @@ class afroxlmr_Amharic_NER_fine_tuner:
         Returns:
             dict: A dictionary with tokenized input IDs and aligned labels.
         """
-        tokenized = self.tokenizer(example["tokens"], truncation=True, is_split_into_words=True)
+        
+        tokenized = self.tokenizer(example["tokens"],
+                                    truncation=True,
+                                    is_split_into_words=True,
+            return_offsets_mapping=True  # <-- helpful for debugging
+        )
         word_ids = tokenized.word_ids()
         labels = []
-        prev = None
-        for word_id in word_ids:
-            if word_id is None:
+        previous_word_idx = None
+        for word_idx in word_ids:
+            if word_idx is None:
                 labels.append(-100)
-            elif word_id != prev:
-                labels.append(example["labels"][word_id])
+            elif word_idx != previous_word_idx:
+                labels.append(example["labels"][word_idx])  
             else:
-                labels.append(example["labels"][word_id])
-            prev = word_id
+                labels.append(example["labels"][word_idx])  
+            previous_word_idx = word_idx
         tokenized["labels"] = labels
         return tokenized
+
 
     def compute_metrics(self, p):
             """
@@ -97,7 +104,12 @@ class afroxlmr_Amharic_NER_fine_tuner:
                 true_label_seq = [self.id2label[l] for l in label if l != -100]
                 true_preds.append(pred_labels)
                 true_labels.append(true_label_seq)
-            report = classification_report(true_labels, true_preds, output_dict=True, zero_division=0)
+
+                if all(len(seq) == 0 for seq in true_preds):
+                    print("No predicted tokens after alignment. Check tokenizer or labels.")
+
+            report = classification_report(true_labels, true_preds, 
+                                            output_dict = True, zero_division = 0)
 
             return {
                 **report.get("overall", {}),
@@ -105,11 +117,12 @@ class afroxlmr_Amharic_NER_fine_tuner:
                     "macro avg", "weighted avg", "micro avg", "overall"]},
                     "micro avg": report.get("micro avg", {}),
                     "macro avg": report.get("macro avg", {}),
-                    "weighted avg": report.get("weighted avg", {})
+                    "weighted avg": report.get("weighted avg", {},),
+                    "f1": report["micro avg"]["f1-score"],  
+                    "f1_PRODUCT": report["PRODUCT"]["f1-score"]
                     }
 
-
-    def train(self, epochs = 10):
+    def train(self, epochs = 15):
             """
             Trains the model on the provided CoNLL data.
 
@@ -131,6 +144,14 @@ class afroxlmr_Amharic_NER_fine_tuner:
 
             tokenized_ds = hf_dataset.map(self.tokenize_align, batched=False)
             print("\nDataset tokenized and aligned.")
+            total_tokens = 0
+            valid_labels = 0
+            for ex in tokenized_ds["train"]:
+                total_tokens += len(ex["labels"])
+                valid_labels += sum(1 for l in ex["labels"] if l != -100)
+            print(tokenized_ds["train"][0])  # Inspect one tokenized sample
+
+            print(f"\nLabel coverage: {valid_labels}/{total_tokens} ({100 * valid_labels / total_tokens:.2f}%)")
 
             print("\nSetting up Trainer...")
             self.model = AutoModelForTokenClassification.from_pretrained(
@@ -143,18 +164,22 @@ class afroxlmr_Amharic_NER_fine_tuner:
             print("\nModel loaded and configured.")
 
             args = TrainingArguments(
-                output_dir=self.output_dir,
-                eval_strategy="epoch",
-                save_strategy="epoch",
-                logging_strategy="epoch",
-                logging_dir=os.path.join(self.output_dir or "./", "logs"),
-                learning_rate=2e-5,
-                per_device_train_batch_size=8,
-                per_device_eval_batch_size=8,
-                num_train_epochs=epochs,
-                weight_decay=0.01,
-                report_to="none", 
-                label_smoothing_factor=0.1 
+                output_dir = self.output_dir,
+                eval_strategy = "epoch",
+                save_strategy = "epoch",
+                save_total_limit = 1,
+                load_best_model_at_end = True,
+                metric_for_best_model = "f1",
+                greater_is_better = True,
+                logging_strategy = "epoch",
+                logging_dir = os.path.join(self.output_dir or "./", "logs"),
+                learning_rate = 2e-5,
+                per_device_train_batch_size = 8,
+                per_device_eval_batch_size = 8,
+                num_train_epochs = epochs,
+                weight_decay = 0.01,
+                report_to = "none", 
+                label_smoothing_factor = 0.0
             )
             print("\nTraining arguments set.")
 
@@ -176,10 +201,29 @@ class afroxlmr_Amharic_NER_fine_tuner:
             print("\nSaving model...")
             self.trainer.save_model(self.output_dir)
             self.tokenizer.save_pretrained(self.output_dir)
-            print("Model saved.")
+            print("\nModel saved.")
 
             print("\nTraining complete and model saved.")
+    
+    def predict_entities(self, text):
+        """
+        Runs NER inference on a given string of text.
 
+        Returns:
+            list of tuples: [(token, label), ...]
+        """
+
+        if not hasattr(self, "inference_pipeline"):
+            self.inference_pipeline = pipeline(
+                "ner",
+                model=self.model,
+                tokenizer=self.tokenizer,
+                aggregation_strategy="simple"
+            )
+
+        predictions = self.inference_pipeline(text)
+        return [(pred["word"], pred["entity_group"]) for pred in predictions]
+    
     def evaluate(self):
         """
         Evaluates the trained model and prints a formatted summary.
@@ -208,7 +252,7 @@ class afroxlmr_Amharic_NER_fine_tuner:
                 support = scores["support"]
                 print(f"  • {name:<10} | P: {p:5.1f}%  R: {r:5.1f}%  F1: {f1:5.1f}%  (Support: {support})")
 
-        print("\n📦 Runtime Info:")
+        print("\n**Runtime Info:**")
         print(f"  - Runtime: {metrics.get('eval_runtime', 0):.2f}s")
         print(f"  - Samples/sec: {metrics.get('eval_samples_per_second', 0):.1f}")
         print(f"  - Epoch: {metrics.get('epoch', 0)}")
