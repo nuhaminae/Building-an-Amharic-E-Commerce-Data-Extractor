@@ -20,31 +20,22 @@ class ShapNERExplainer:
         # Define a function that SHAP can call on raw text
         def forward_fn(texts):
             outputs = []
-            max_len = 0
-            token_probs_list = []
-
             for text in texts:
                 tokens = text.strip().split()
                 encoding = tokenizer(tokens, return_tensors="pt", is_split_into_words=True, truncation=True, padding=True)
                 with torch.no_grad():
-                    out = model(**encoding).logits.squeeze(0)
-                    probs = torch.nn.functional.softmax(out, dim=-1)
+                    logits = model(**encoding).logits.squeeze(0)
+                    probs = torch.nn.functional.softmax(logits, dim=-1)
                     word_ids = encoding.word_ids()
                     mask = [i for i in range(len(word_ids)) if word_ids[i] is not None]
-                    token_probs = probs[mask].cpu().numpy()
-                    token_probs_list.append(token_probs)
-                    max_len = max(max_len, token_probs.shape[0])
+                    token_probs = probs[mask].cpu().numpy()  # shape: (num_tokens, num_labels)
 
-            # Pad all sequences to the same length
-            for token_probs in token_probs_list:
-                pad_len = max_len - token_probs.shape[0]
-                if pad_len > 0:
-                    padded = np.pad(token_probs, ((0, pad_len), (0, 0)), constant_values=0)
-                else:
-                    padded = token_probs
-                outputs.append(padded)
+                # Aggregate: Take average max probability across tokens as a scalar
+                max_probs = np.max(token_probs, axis=1)  # max per token
+                confidence = np.mean(max_probs)  # mean over tokens
+                outputs.append([confidence])  # SHAP expects 2D shape (batch, 1)
 
-            return np.stack(outputs)
+            return np.array(outputs)
 
         self.explainer = shap.Explainer(forward_fn, tokenizer)
 
