@@ -76,7 +76,7 @@ class afroxlmr_Amharic_NER_fine_tuner:
             elif word_id != prev:
                 labels.append(example["labels"][word_id])
             else:
-                labels.append(example["labels"][word_id])
+                labels.append(-100)
             prev = word_id
         tokenized["labels"] = labels
         return tokenized
@@ -143,18 +143,18 @@ class afroxlmr_Amharic_NER_fine_tuner:
             print("\nModel loaded and configured.")
 
             args = TrainingArguments(
-                output_dir=self.output_dir,
-                eval_strategy="epoch",
-                save_strategy="epoch",
-                logging_strategy="epoch",
-                logging_dir=os.path.join(self.output_dir or "./", "logs"),
-                learning_rate=2e-5,
-                per_device_train_batch_size=8,
-                per_device_eval_batch_size=8,
-                num_train_epochs=epochs,
-                weight_decay=0.01,
-                report_to="none", 
-                label_smoothing_factor=0.1 
+                output_dir = self.output_dir,
+                eval_strategy = "epoch",
+                save_strategy = "epoch",
+                logging_strategy = "epoch",
+                logging_dir = os.path.join(self.output_dir or "./", "logs"),
+                learning_rate = 1e-5,
+                per_device_train_batch_size = 8,
+                per_device_eval_batch_size = 8,
+                num_train_epochs = epochs,
+                weight_decay = 0.01,
+                report_to = "none", 
+                label_smoothing_factor = 0.1 
             )
             print("\nTraining arguments set.")
 
@@ -208,7 +208,7 @@ class afroxlmr_Amharic_NER_fine_tuner:
                 support = scores["support"]
                 print(f"  • {name:<10} | P: {p:5.1f}%  R: {r:5.1f}%  F1: {f1:5.1f}%  (Support: {support})")
 
-        print("\n📦 Runtime Info:")
+        print("\Runtime Info:")
         print(f"  - Runtime: {metrics.get('eval_runtime', 0):.2f}s")
         print(f"  - Samples/sec: {metrics.get('eval_samples_per_second', 0):.1f}")
         print(f"  - Epoch: {metrics.get('epoch', 0)}")
