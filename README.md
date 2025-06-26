@@ -1,6 +1,6 @@
 # Building an Amharic E-Commerce Data Extractor
 
-This repository provides a robust pipeline for extracting, processing, and annotating e-commerce data in Amharic, with a particular focus on Telegram-based marketplaces. It is designed to facilitate downstream tasks such as Named Entity Recognition (NER), price extraction, product recognition, and location identification from Amharic-language posts and chats.
+This repository provides a comprehensive, reproducible framework for extracting, processing, and annotating e-commerce data in Amharic, with an emphasis on informal marketplaces such as Telegram channels. The pipeline is crafted to empower research and applications in natural language processing (NLP), information extraction, and digital commerce analytics for the Amharic language.
 
 ---
 
@@ -21,22 +21,24 @@ This repository provides a robust pipeline for extracting, processing, and annot
 
 ## Project Overview
 
-E-commerce activity in Ethiopia is increasingly taking place via informal channels, especially Telegram groups and channels. This project addresses the lack of structured datasets and tools for Amharic e-commerce by providing:
+E-commerce in Ethiopia is rapidly evolving, with a significant amount of trading activity occurring via informal digital channels such as Telegram groups. Unfortunately, there is a dearth of structured datasets and language resources for Amharic, which impedes the development of robust commerce and NLP solutions.
 
-- A pipeline to **scrape, preprocess, and structure data** from Amharic Telegram channels.
-- Tools and annotated corpora for **developing and evaluating NER and information extraction models** in the Amharic language.
-- Sample scripts and Jupyter Notebooks for **exploratory analysis and downstream NLP tasks**.
+This project tackles that gap by providing:
+
+- A robust pipeline to **scrape, preprocess, and structure data** from Amharic Telegram channels.
+- Tools and annotated corpora for **developing and evaluating Named Entity Recognition (NER) and information extraction models** in Amharic.
+- Example scripts and Jupyter Notebooks for **exploratory data analysis and downstream NLP applications**.
 
 ---
 
 ## Features
 
-- **Data Extraction:** Scripts for extracting raw messages and metadata from Telegram channels.
-- **Preprocessing:** Cleaning and structuring of raw chat data, with support for handling Amharic text.
-- **Named Entity Recognition (NER) Annotation:** Amharic text annotated in CoNLL format for products, prices, phone numbers, and locations.
-- **DVC Integration:** Uses [Data Version Control (DVC)](https://dvc.org/) for managing large processed datasets.
-- **Reproducible Analysis:** Example notebooks for data exploration and NLP experiments.
-- **Continuous Integration:** Automated tests and environment setup via GitHub Actions.
+- **Data Extraction:** Scripts for scraping raw messages (text, images, metadata) from Telegram channels, focusing on Amharic commerce content.
+- **Preprocessing:** Advanced cleaning and structuring of raw chat data, including tokenisation, currency normalisation, and entity pattern extraction.
+- **NER Annotation:** High-quality CoNLL-format annotation of Amharic e-commerce data for entities such as products, prices, phone numbers, and locations.
+- **DVC Integration:** [Data Version Control (DVC)](https://dvc.org/) is used for tracking large, processed datasets and ensuring reproducibility.
+- **Reproducible Workflows:** Jupyter Notebooks and modular Python scripts allow for easy experimentation and extension.
+- **Continuous Integration:** Automated environment setup and basic validation via GitHub Actions.
 
 ---
 
@@ -45,16 +47,18 @@ E-commerce activity in Ethiopia is increasingly taking place via informal channe
 ```
 .
 ├── data/
-│   ├── raw/                          # Raw Telegram data (scraped messages, photos, sessions)
-│   ├── processed_telegram_data.csv    # Cleaned and processed Telegram data (DVC tracked)
-│   ├── ner_amharic_conll.txt          # NER-annotated Amharic corpus in CoNLL format
+│   ├── raw/                          # Raw Telegram data (scraped messages, session files)
+│   ├── processed_telegram_data.csv    # Cleaned, structured Telegram data (tracked with DVC)
+│   ├── enriched_telegram_data.csv     # Further enriched dataset (for advanced analysis)
+│   ├── ner_amharic_conll.txt          # NER-annotated Amharic text in CoNLL format
 │
-├── notebooks/                        # Jupyter Notebooks for data exploration & analysis
-├── scripts/                          # Python scripts for scraping, preprocessing, annotation
-├── .github/workflows/                # CI configuration
-├── .dvc/                             # DVC configuration and tracking
+├── notebooks/                        # Jupyter Notebooks for data exploration, analysis, and modelling
+├── scripts/                          # Python scripts for scraping, preprocessing, and annotation
+├── models/                           # Model training outputs (for downstream tasks)
+├── .github/workflows/                # CI/CD configuration files
+├── .dvc/                             # DVC configuration and metadata
 ├── .gitignore                        # Git ignore rules
-├── README.md                         # Project documentation
+├── README.md                         # This documentation
 ```
 
 ---
@@ -65,7 +69,7 @@ E-commerce activity in Ethiopia is increasingly taking place via informal channe
 
 - Python 3.8 or above
 - [pip](https://pip.pypa.io/en/stable/)
-- [DVC](https://dvc.org/) (for large data file management)
+- [DVC](https://dvc.org/) (for managing and retrieving large data files)
 - [Git](https://git-scm.com/)
 
 ### Setup Instructions
@@ -97,66 +101,70 @@ E-commerce activity in Ethiopia is increasingly taking place via informal channe
 
 ## Usage
 
-1. **Scrape and preprocess data:**
-   - Use scripts in `scripts/` to extract Telegram messages and preprocess them.
-   - Raw and processed data will be stored in `data/raw/` and `data/`.
+1. **Scrape and preprocess Telegram data:**
+   - Use scripts in `scripts/` to extract and clean marketplace messages.
+   - Raw data is saved in `data/raw/`, structured outputs in `data/`.
 
-2. **Run analysis and annotation:**
-   - Explore the data or train models using the notebooks in the `notebooks/` folder.
-   - Use `data/ner_amharic_conll.txt` for developing and evaluating Amharic NER models.
+2. **Explore and annotate data:**
+   - Use Jupyter Notebooks in `notebooks/` for exploratory analysis, visualisation, or model training.
+   - The NER-labelled file `data/ner_amharic_conll.txt` enables NER experiments and model evaluation.
 
 3. **NER Training Example:**
-   - The provided CoNLL file includes tags for:
-     - `B-Product`, `B-Price`, `I-Price`, `B-Phone`, `B-Loc`, `I-Loc`, etc.
-   - Example snippet:
-     ```
-     ፀጉር    B-Product
-     ዋጋ      B-Price
-     200      I-Price
-     ብር      I-Price
-     አዲስ      B-Loc
-     አበባ    I-Loc
-     ```
+   The provided CoNLL file supports training entity recognition models. Example lines:
+   ```
+   የፀጉር    B-Product
+   ማበጠርያ  I-Product
+   ዋጋ      B-Price
+   200      I-Price
+   ብር      I-Price
+   አዲስ      B-Loc
+   አበባ    I-Loc
+   ```
 
 ---
 
 ## Data
 
-- **Raw Telegram data:** Not included by default for privacy. Structure provided for custom scraping.
-- **Processed CSV:** Cleaned, structured data for analysis and model training.
-- **NER Corpus:** Annotated Amharic e-commerce text for NER and entity extraction research.
+- **Raw Telegram data:** Not included in the repository for privacy. Instructions and scripts are provided for custom scraping.
+- **Processed CSV:** Cleaned, structured data for analysis and machine learning.
+- **NER Corpus:** Annotated Amharic e-commerce text for entity extraction research.
 
 ---
 
 ## NER Annotation Format
 
-The `data/ner_amharic_conll.txt` file follows the CoNLL-style format:
-- Each token is on a separate line, followed by its entity tag.
-- Blank lines separate sentences.
-- Tag set includes:  
-  - `B-Product`/`I-Product`: Product names
+- Each token is on its own line, followed by its tag.
+- Blank lines separate sentences/messages.
+- Tag set includes:
+  - `B-Product`/`I-Product`: Product entities
   - `B-Price`/`I-Price`: Price mentions
-  - `B-Loc`/`I-Loc`: Location names
+  - `B-Loc`/`I-Loc`: Location mentions
   - `B-Phone`: Phone numbers
-  - `O`: Other
+  - `O`: Other/non-entity tokens
 
 ---
 
 ## Testing & CI
 
-- GitHub Actions (`.github/workflows/CI.yml`) ensures environment is set up and basic tests are run on every push or pull request.
-- Custom scripts/notebooks should include their own test cases for robust development.
+- GitHub Actions (`.github/workflows/CI.yml`) sets up the Python environment and runs basic validation on each push or pull request.
+- Scripts and notebooks should be accompanied by relevant tests for robust development.
 
 ---
 
 ## Contribution
 
-Contributions are warmly welcomed! Please:
-- Raise an issue for bugs, feature requests, or questions.
-- Fork the repository, create your branch, and submit a pull request.
-- Ensure code is well-commented and tested.
+Contributions are very welcome! Please:
+- Raise issues for bugs, suggestions, or feature requests.
+- Fork the repository, create a branch, and submit a pull request.
+- Adhere to best practices for code clarity, documentation, and testing.
 
 ---
 
 ## Project Status
-The project is still underway, check the [commit history](https://github.com/nuhaminae/Building-an-Amharic-E-Commerce-Data-Extractor/commits?author=nuhaminae) for full commit history. 
+
+The project is completed, checkout the full [commit history](https://github.com/nuhaminae/Building-an-Amharic-E-Commerce-Data-Extractor/commits?author=nuhaminae) here.
+
+
+---
+
+*Created and maintained by [nuhaminae](https://github.com/nuhaminae)*
