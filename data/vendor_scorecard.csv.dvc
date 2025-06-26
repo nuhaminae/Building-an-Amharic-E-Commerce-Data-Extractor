@@ -1,0 +1,5 @@
+outs:
+- md5: 6744120426cfaa8e2bb4ec5e459ce611
+  size: 693
+  hash: md5
+  path: vendor_scorecard.csv
