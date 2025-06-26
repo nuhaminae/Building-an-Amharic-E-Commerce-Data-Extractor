@@ -1,2 +1,4 @@
 /telegram_data.csv
 /processed_telegram_data.csv
+/enriched_telegram_data.csv
+#/vendor_scorecard.csv
