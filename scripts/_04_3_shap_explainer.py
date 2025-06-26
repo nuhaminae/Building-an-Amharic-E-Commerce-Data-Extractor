@@ -68,26 +68,3 @@ class ShapNERExplainer:
         highlighted = [colorise(tok, attr.sum(), label)
                     for tok, attr, label in zip(tokens, attributions, labels)]
         display(HTML(" ".join(highlighted)))
-
-    def visualise_shap_explanation_thre(self, text, shap_values, threshold=0.01):
-        tokens = text.strip().split()
-        attributions = shap_values.values[0][:len(tokens)]  # skip padding if any
-
-        def colorise(token, weight, label=None):
-            score = abs(weight)
-            if score < threshold:
-                return f"<span style='opacity:0.2; padding:2px' title='Filtered: low attribution'>{token}</span>"
-
-            base = "rgba({r},{g},0,{a})"
-            r, g = (255, 0) if weight < 0 else (0, 200)
-            a = min(score, 1.0)
-            tooltip = f" title='{label}'" if label else ""
-            return f"<span style='background-color:{base.format(r=r, g=g, a=a)}; padding:2px'{tooltip}>{token}</span>"
-
-        labels = [None] * len(tokens)  # Or pull from predictions
-
-        highlighted = [
-            colorise(tok, attr.sum(), label)
-            for tok, attr, label in zip(tokens, attributions, labels)
-        ]
-        display(HTML(" ".join(highlighted)))
